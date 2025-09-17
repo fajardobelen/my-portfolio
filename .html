@@ -1,0 +1,1309 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Belen C. Fajardo - Neural Designer</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@100;200;300;400;500;600;700;800;900&family=Space+Mono:wght@400;700&display=swap');
+        
+        * {
+            font-family: 'Orbitron', monospace;
+        }
+        
+        .space-mono {
+            font-family: 'Space Mono', monospace;
+        }
+        
+        body {
+            background: #000;
+            overflow-x: hidden;
+            cursor: none;
+        }
+        
+        /* Custom Cursor */
+        .cursor {
+            position: fixed;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, #00ffff, transparent);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 10000;
+            mix-blend-mode: difference;
+            transition: transform 0.1s ease;
+        }
+        
+        .cursor-trail {
+            position: fixed;
+            width: 4px;
+            height: 4px;
+            background: #00ffff;
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.7;
+        }
+        
+        /* Neural Network Background */
+        .neural-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+        }
+        
+        .neural-node {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: #00ffff;
+            border-radius: 50%;
+            box-shadow: 0 0 10px #00ffff;
+            animation: pulse 3s ease-in-out infinite;
+        }
+        
+        .neural-connection {
+            position: absolute;
+            height: 1px;
+            background: linear-gradient(90deg, transparent, #00ffff, transparent);
+            opacity: 0.3;
+            animation: dataFlow 2s linear infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.3; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.5); }
+        }
+        
+        @keyframes dataFlow {
+            0% { opacity: 0; transform: scaleX(0); }
+            50% { opacity: 1; transform: scaleX(1); }
+            100% { opacity: 0; transform: scaleX(0); }
+        }
+        
+        /* Holographic Effects */
+        .hologram {
+            position: relative;
+            background: linear-gradient(45deg, 
+                rgba(0, 255, 255, 0.1) 0%,
+                rgba(255, 0, 255, 0.1) 25%,
+                rgba(255, 255, 0, 0.1) 50%,
+                rgba(0, 255, 255, 0.1) 75%,
+                rgba(255, 0, 255, 0.1) 100%);
+            background-size: 400% 400%;
+            animation: hologramShift 4s ease-in-out infinite;
+        }
+        
+        .hologram::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: repeating-linear-gradient(
+                90deg,
+                transparent,
+                transparent 2px,
+                rgba(0, 255, 255, 0.1) 2px,
+                rgba(0, 255, 255, 0.1) 4px
+            );
+            animation: scanlines 0.1s linear infinite;
+        }
+        
+        @keyframes hologramShift {
+            0%, 100% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+        }
+        
+        @keyframes scanlines {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(4px); }
+        }
+        
+        /* Navigation Bar Styles */
+        .nav-link {
+            position: relative;
+            padding: 12px 20px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .nav-link.mobile {
+            display: block;
+            padding: 16px 0;
+            border-bottom: 1px solid rgba(0, 255, 255, 0.1);
+        }
+        
+        .nav-link.mobile:last-child {
+            border-bottom: none;
+        }
+        
+        .nav-text {
+            position: relative;
+            z-index: 2;
+            transition: all 0.3s ease;
+        }
+        
+        .nav-link:hover .nav-text {
+            color: #00ffff;
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+        
+        .nav-link.active .nav-text {
+            color: #00ffff;
+            text-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
+        }
+        
+        /* Navigation Loader */
+        .nav-loader {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            width: 0;
+            height: 2px;
+            background: linear-gradient(90deg, #00ffff, #ff00ff, #ffff00, #00ffff);
+            background-size: 200% 100%;
+            transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            animation: loaderShimmer 2s linear infinite;
+        }
+        
+        .nav-link.loading .nav-loader {
+            width: 100%;
+        }
+        
+        .nav-link.active .nav-loader {
+            width: 100%;
+            background: #00ffff;
+            box-shadow: 0 0 10px rgba(0, 255, 255, 0.5);
+        }
+        
+        @keyframes loaderShimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        
+        /* Mobile Menu Styles */
+        .mobile-menu-btn {
+            transition: all 0.3s ease;
+        }
+        
+        .mobile-menu-btn:hover {
+            background: rgba(0, 255, 255, 0.1);
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.3);
+        }
+        
+        .hamburger {
+            width: 20px;
+            height: 16px;
+            position: relative;
+            transform: rotate(0deg);
+            transition: 0.3s ease-in-out;
+        }
+        
+        .hamburger span {
+            display: block;
+            position: absolute;
+            height: 2px;
+            width: 100%;
+            background: #00ffff;
+            border-radius: 1px;
+            opacity: 1;
+            left: 0;
+            transform: rotate(0deg);
+            transition: 0.3s ease-in-out;
+            box-shadow: 0 0 5px rgba(0, 255, 255, 0.5);
+        }
+        
+        .hamburger span:nth-child(1) {
+            top: 0px;
+        }
+        
+        .hamburger span:nth-child(2) {
+            top: 7px;
+        }
+        
+        .hamburger span:nth-child(3) {
+            top: 14px;
+        }
+        
+        .hamburger.open span:nth-child(1) {
+            top: 7px;
+            transform: rotate(135deg);
+        }
+        
+        .hamburger.open span:nth-child(2) {
+            opacity: 0;
+            left: -20px;
+        }
+        
+        .hamburger.open span:nth-child(3) {
+            top: 7px;
+            transform: rotate(-135deg);
+        }
+        
+        .mobile-menu {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .mobile-menu.open {
+            max-height: 400px;
+        }
+        
+        /* Navigation Background Blur */
+        nav {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        
+        /* Quantum Loader */
+        .quantum-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.5s ease;
+        }
+        
+        .quantum-loader.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        
+        .quantum-ring {
+            width: 100px;
+            height: 100px;
+            border: 2px solid transparent;
+            border-top: 2px solid #00ffff;
+            border-radius: 50%;
+            animation: quantumSpin 1s linear infinite;
+            position: relative;
+        }
+        
+        .quantum-ring::before,
+        .quantum-ring::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 60px;
+            height: 60px;
+            border: 2px solid transparent;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .quantum-ring::before {
+            border-right: 2px solid #ff00ff;
+            animation: quantumSpin 0.8s linear infinite reverse;
+        }
+        
+        .quantum-ring::after {
+            width: 30px;
+            height: 30px;
+            border-bottom: 2px solid #ffff00;
+            animation: quantumSpin 0.6s linear infinite;
+        }
+        
+        @keyframes quantumSpin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        /* Glitch Text Effect */
+        .glitch-text {
+            position: relative;
+            font-weight: 700;
+            animation: glitch 2s infinite;
+        }
+        
+        .glitch-text::before,
+        .glitch-text::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
+        .glitch-text::before {
+            animation: glitch-1 0.5s infinite;
+            color: #ff00ff;
+            z-index: -1;
+        }
+        
+        .glitch-text::after {
+            animation: glitch-2 0.5s infinite;
+            color: #00ffff;
+            z-index: -2;
+        }
+        
+        @keyframes glitch {
+            0%, 100% { transform: translate(0); }
+            20% { transform: translate(-2px, 2px); }
+            40% { transform: translate(-2px, -2px); }
+            60% { transform: translate(2px, 2px); }
+            80% { transform: translate(2px, -2px); }
+        }
+        
+        @keyframes glitch-1 {
+            0%, 100% { transform: translate(0); }
+            10% { transform: translate(-2px, -2px); }
+            20% { transform: translate(2px, 2px); }
+        }
+        
+        @keyframes glitch-2 {
+            0%, 100% { transform: translate(0); }
+            30% { transform: translate(2px, -2px); }
+            60% { transform: translate(-2px, 2px); }
+        }
+        
+        /* Morphing Cards */
+        .morph-card {
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid rgba(0, 255, 255, 0.2);
+            backdrop-filter: blur(20px);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            transform-style: preserve-3d;
+        }
+        
+        .morph-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(45deg, transparent, rgba(0, 255, 255, 0.1), transparent);
+            transform: translateX(-100%);
+            transition: transform 0.6s ease;
+        }
+        
+        .morph-card:hover::before {
+            transform: translateX(100%);
+        }
+        
+        .morph-card:hover {
+            transform: rotateY(10deg) rotateX(5deg) translateZ(20px);
+            border-color: rgba(0, 255, 255, 0.6);
+            box-shadow: 0 20px 40px rgba(0, 255, 255, 0.2);
+        }
+        
+        /* Particle System */
+        .particle-system {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        .particle {
+            position: absolute;
+            width: 2px;
+            height: 2px;
+            background: #00ffff;
+            border-radius: 50%;
+            animation: particleFloat 10s linear infinite;
+        }
+        
+        @keyframes particleFloat {
+            0% {
+                opacity: 0;
+                transform: translateY(100vh) translateX(0);
+            }
+            10% {
+                opacity: 1;
+            }
+            90% {
+                opacity: 1;
+            }
+            100% {
+                opacity: 0;
+                transform: translateY(-100px) translateX(100px);
+            }
+        }
+        
+        /* Matrix Rain Effect */
+        .matrix-rain {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: -1;
+            opacity: 0.1;
+        }
+        
+        .matrix-column {
+            position: absolute;
+            top: -100%;
+            font-family: 'Space Mono', monospace;
+            font-size: 14px;
+            color: #00ffff;
+            animation: matrixFall 10s linear infinite;
+        }
+        
+        @keyframes matrixFall {
+            0% { top: -100%; opacity: 0; }
+            10% { opacity: 1; }
+            90% { opacity: 1; }
+            100% { top: 100%; opacity: 0; }
+        }
+        
+        /* Neon Glow Effects */
+        .neon-glow {
+            text-shadow: 
+                0 0 5px currentColor,
+                0 0 10px currentColor,
+                0 0 15px currentColor,
+                0 0 20px currentColor;
+            animation: neonFlicker 3s ease-in-out infinite alternate;
+        }
+        
+        @keyframes neonFlicker {
+            0%, 100% { 
+                text-shadow: 
+                    0 0 5px currentColor,
+                    0 0 10px currentColor,
+                    0 0 15px currentColor,
+                    0 0 20px currentColor;
+            }
+            50% { 
+                text-shadow: 
+                    0 0 2px currentColor,
+                    0 0 5px currentColor,
+                    0 0 8px currentColor,
+                    0 0 12px currentColor;
+            }
+        }
+        
+        /* Hexagonal Grid */
+        .hex-grid {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            background-image: 
+                radial-gradient(circle at 25% 25%, rgba(0, 255, 255, 0.1) 2px, transparent 2px),
+                radial-gradient(circle at 75% 75%, rgba(255, 0, 255, 0.1) 2px, transparent 2px);
+            background-size: 60px 60px;
+            animation: hexShift 15s ease-in-out infinite;
+        }
+        
+        @keyframes hexShift {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(30px, 30px); }
+        }
+        
+        /* Quantum Button */
+        .quantum-btn {
+            position: relative;
+            background: transparent;
+            border: 2px solid #00ffff;
+            color: #00ffff;
+            padding: 15px 40px;
+            font-weight: 300;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .quantum-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(0, 255, 255, 0.2), transparent);
+            transition: left 0.5s ease;
+        }
+        
+        .quantum-btn:hover::before {
+            left: 100%;
+        }
+        
+        .quantum-btn:hover {
+            color: #000;
+            background: #00ffff;
+            box-shadow: 0 0 30px rgba(0, 255, 255, 0.5);
+            transform: translateY(-2px);
+        }
+        
+        /* Section Transitions */
+        .section {
+            opacity: 0;
+            transform: translateY(100px);
+            transition: all 1s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        .section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-sphere {
+                display: none;
+            }
+            
+            .cursor, .cursor-trail {
+                display: none;
+            }
+            
+            body {
+                cursor: auto;
+            }
+        }
+    </style>
+</head>
+<body class="text-white">
+    <!-- Custom Cursor -->
+    <div class="cursor"></div>
+    
+    <!-- Neural Network Background -->
+    <div class="neural-bg" id="neural-bg"></div>
+    
+    <!-- Particle System -->
+    <div class="particle-system" id="particle-system"></div>
+    
+    <!-- Matrix Rain -->
+    <div class="matrix-rain" id="matrix-rain"></div>
+    
+    <!-- Hexagonal Grid -->
+    <div class="hex-grid"></div>
+    
+    <!-- Quantum Loader -->
+    <div id="quantum-loader" class="quantum-loader">
+        <div class="text-center">
+            <div class="quantum-ring"></div>
+            <div class="mt-8 text-sm font-light tracking-widest">QUANTUM LOADING...</div>
+        </div>
+    </div>
+    
+    <!-- Futuristic Navigation Bar -->
+    <nav class="fixed top-0 left-0 right-0 z-50 p-6">
+        <div class="max-w-7xl mx-auto">
+            <div class="hologram rounded-2xl border border-cyan-400 border-opacity-30 backdrop-filter backdrop-blur-20 bg-black bg-opacity-40">
+                <div class="flex items-center justify-between px-8 py-4">
+                    <!-- Logo -->
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-full hologram flex items-center justify-center">
+                            <div class="text-sm font-light neon-glow text-cyan-400">BC</div>
+                        </div>
+                        <div class="text-lg font-light tracking-wider neon-glow text-cyan-400">BELEN.FAJARDO</div>
+                    </div>
+                    
+                    <!-- Navigation Links -->
+                    <div class="hidden md:flex items-center space-x-8">
+                        <div class="nav-link active" data-section="home">
+                            <span class="nav-text">HOME</span>
+                            <div class="nav-loader"></div>
+                        </div>
+                        <div class="nav-link" data-section="about">
+                            <span class="nav-text">ABOUT</span>
+                            <div class="nav-loader"></div>
+                        </div>
+                        <div class="nav-link" data-section="work">
+                            <span class="nav-text">WORK</span>
+                            <div class="nav-loader"></div>
+                        </div>
+                        <div class="nav-link" data-section="skills">
+                            <span class="nav-text">SKILLS</span>
+                            <div class="nav-loader"></div>
+                        </div>
+                        <div class="nav-link" data-section="contact">
+                            <span class="nav-text">CONTACT</span>
+                            <div class="nav-loader"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Mobile Menu Button -->
+                    <div class="md:hidden">
+                        <button class="mobile-menu-btn w-10 h-10 rounded-full hologram flex items-center justify-center">
+                            <div class="hamburger">
+                                <span></span>
+                                <span></span>
+                                <span></span>
+                            </div>
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Mobile Menu -->
+                <div class="mobile-menu hidden md:hidden border-t border-cyan-400 border-opacity-20">
+                    <div class="px-8 py-6 space-y-4">
+                        <div class="nav-link mobile" data-section="home">
+                            <span class="nav-text">HOME</span>
+                            <div class="nav-loader"></div>
+                        </div>
+                        <div class="nav-link mobile" data-section="about">
+                            <span class="nav-text">ABOUT</span>
+                            <div class="nav-loader"></div>
+                        </div>
+                        <div class="nav-link mobile" data-section="work">
+                            <span class="nav-text">WORK</span>
+                            <div class="nav-loader"></div>
+                        </div>
+                        <div class="nav-link mobile" data-section="skills">
+                            <span class="nav-text">SKILLS</span>
+                            <div class="nav-loader"></div>
+                        </div>
+                        <div class="nav-link mobile" data-section="contact">
+                            <span class="nav-text">CONTACT</span>
+                            <div class="nav-loader"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
+    
+    <!-- Hero Section -->
+    <section id="home" class="min-h-screen flex items-center justify-center px-6 section visible">
+        <div class="text-center max-w-6xl">
+            <div class="mb-12">
+                <div class="text-xs tracking-[0.3em] mb-8 text-cyan-400 opacity-60">NEURAL INTERFACE ACTIVATED</div>
+                <h1 class="text-7xl md:text-9xl font-thin mb-8 glitch-text neon-glow text-cyan-400" data-text="BELEN C.">
+                    BELEN C.
+                </h1>
+                <h2 class="text-4xl md:text-6xl font-extralight mb-12 tracking-wider">
+                    FAJARDO
+                </h2>
+            </div>
+            <div class="hologram rounded-3xl p-12 mb-12">
+                <p class="text-xl md:text-2xl font-light leading-relaxed tracking-wide">
+                    QUANTUM GRAPHIC DESIGNER<br>
+                    <span class="text-cyan-400">CRAFTING DIGITAL REALITIES</span><br>
+                    BEYOND IMAGINATION
+                </p>
+            </div>
+            <button class="quantum-btn" data-section="work">
+                ENTER THE MATRIX
+            </button>
+        </div>
+    </section>
+    
+    <!-- About Section -->
+    <section id="about" class="min-h-screen flex items-center px-6 py-20 section">
+        <div class="max-w-7xl mx-auto grid md:grid-cols-2 gap-20 items-center">
+            <div>
+                <div class="text-xs tracking-[0.3em] mb-8 text-cyan-400 opacity-60">SYSTEM.PROFILE</div>
+                <h2 class="text-5xl md:text-6xl font-thin mb-12 neon-glow text-cyan-400">
+                    NEURAL<br>ARCHITECT
+                </h2>
+                <div class="space-y-8 text-lg font-light leading-relaxed">
+                    <p class="opacity-80">
+                        I am a quantum-enhanced graphic designer operating at the intersection 
+                        of digital consciousness and visual reality. My neural pathways have been 
+                        optimized for creating experiences that transcend dimensional boundaries.
+                    </p>
+                    <p class="opacity-80">
+                        Through advanced algorithmic creativity and cybernetic intuition, 
+                        I transform abstract concepts into tangible digital artifacts that 
+                        resonate across multiple planes of existence.
+                    </p>
+                    <p class="opacity-80">
+                        My design philosophy merges quantum aesthetics with human emotion, 
+                        creating visual symphonies that speak directly to the soul's digital core.
+                    </p>
+                </div>
+                <div class="mt-12">
+                    <button class="quantum-btn">
+                        DOWNLOAD NEURAL MAP
+                    </button>
+                </div>
+            </div>
+            <div class="relative">
+                <div class="morph-card rounded-3xl p-12 text-center">
+                    <div class="w-40 h-40 mx-auto mb-12 rounded-full hologram flex items-center justify-center">
+                        <div class="text-6xl font-thin neon-glow text-cyan-400">BC</div>
+                    </div>
+                    <div class="grid grid-cols-2 gap-8 mb-8">
+                        <div class="text-center">
+                            <div class="text-3xl font-light neon-glow text-cyan-400 mb-2">5.7</div>
+                            <div class="text-xs tracking-widest opacity-60">YEARS ACTIVE</div>
+                        </div>
+                        <div class="text-center">
+                            <div class="text-3xl font-light neon-glow text-cyan-400 mb-2">∞</div>
+                            <div class="text-xs tracking-widest opacity-60">POSSIBILITIES</div>
+                        </div>
+                    </div>
+                    <div class="border-t border-cyan-400 border-opacity-20 pt-8">
+                        <div class="grid grid-cols-3 gap-6 text-center">
+                            <div>
+                                <div class="text-xl font-light neon-glow text-cyan-400">67</div>
+                                <div class="text-xs opacity-60">PROJECTS</div>
+                            </div>
+                            <div>
+                                <div class="text-xl font-light neon-glow text-cyan-400">34</div>
+                                <div class="text-xs opacity-60">CLIENTS</div>
+                            </div>
+                            <div>
+                                <div class="text-xl font-light neon-glow text-cyan-400">12</div>
+                                <div class="text-xs opacity-60">AWARDS</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Work Section -->
+    <section id="work" class="min-h-screen px-6 py-20 section">
+        <div class="max-w-7xl mx-auto">
+            <div class="text-center mb-20">
+                <div class="text-xs tracking-[0.3em] mb-8 text-cyan-400 opacity-60">DIGITAL.ARTIFACTS</div>
+                <h2 class="text-5xl md:text-6xl font-thin neon-glow text-cyan-400">QUANTUM PORTFOLIO</h2>
+            </div>
+            
+            <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
+                <div class="morph-card rounded-3xl overflow-hidden group">
+                    <div class="aspect-square bg-gradient-to-br from-cyan-900 to-blue-900 relative overflow-hidden">
+                        <div class="absolute inset-0 hologram"></div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="text-8xl font-thin opacity-20 neon-glow text-cyan-400">01</div>
+                        </div>
+                        <div class="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black to-transparent">
+                            <div class="text-xs tracking-widest opacity-60 mb-2">NEURAL BRANDING</div>
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <h3 class="text-xl font-light mb-3 neon-glow text-cyan-400">QUANTUM IDENTITY</h3>
+                        <p class="text-sm opacity-60 mb-4">AI-powered brand consciousness for tech startup</p>
+                        <div class="text-xs space-mono opacity-40">2024.ACTIVE</div>
+                    </div>
+                </div>
+                
+                <div class="morph-card rounded-3xl overflow-hidden group">
+                    <div class="aspect-square bg-gradient-to-br from-purple-900 to-pink-900 relative overflow-hidden">
+                        <div class="absolute inset-0 hologram"></div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="text-8xl font-thin opacity-20 neon-glow text-purple-400">02</div>
+                        </div>
+                        <div class="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black to-transparent">
+                            <div class="text-xs tracking-widest opacity-60 mb-2">CYBER INTERFACE</div>
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <h3 class="text-xl font-light mb-3 neon-glow text-purple-400">HOLOGRAPHIC UI</h3>
+                        <p class="text-sm opacity-60 mb-4">Immersive reality platform design</p>
+                        <div class="text-xs space-mono opacity-40">2024.DEPLOYED</div>
+                    </div>
+                </div>
+                
+                <div class="morph-card rounded-3xl overflow-hidden group">
+                    <div class="aspect-square bg-gradient-to-br from-green-900 to-teal-900 relative overflow-hidden">
+                        <div class="absolute inset-0 hologram"></div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="text-8xl font-thin opacity-20 neon-glow text-green-400">03</div>
+                        </div>
+                        <div class="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black to-transparent">
+                            <div class="text-xs tracking-widest opacity-60 mb-2">DIGITAL SCULPTURE</div>
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <h3 class="text-xl font-light mb-3 neon-glow text-green-400">NEURAL ARTWORK</h3>
+                        <p class="text-sm opacity-60 mb-4">AI-generated visual consciousness</p>
+                        <div class="text-xs space-mono opacity-40">2023.ARCHIVED</div>
+                    </div>
+                </div>
+                
+                <div class="morph-card rounded-3xl overflow-hidden group">
+                    <div class="aspect-square bg-gradient-to-br from-yellow-900 to-orange-900 relative overflow-hidden">
+                        <div class="absolute inset-0 hologram"></div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="text-8xl font-thin opacity-20 neon-glow text-yellow-400">04</div>
+                        </div>
+                        <div class="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black to-transparent">
+                            <div class="text-xs tracking-widest opacity-60 mb-2">QUANTUM PRINT</div>
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <h3 class="text-xl font-light mb-3 neon-glow text-yellow-400">DIMENSIONAL DESIGN</h3>
+                        <p class="text-sm opacity-60 mb-4">Multi-reality packaging system</p>
+                        <div class="text-xs space-mono opacity-40">2023.COMPILED</div>
+                    </div>
+                </div>
+                
+                <div class="morph-card rounded-3xl overflow-hidden group">
+                    <div class="aspect-square bg-gradient-to-br from-red-900 to-pink-900 relative overflow-hidden">
+                        <div class="absolute inset-0 hologram"></div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="text-8xl font-thin opacity-20 neon-glow text-red-400">05</div>
+                        </div>
+                        <div class="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black to-transparent">
+                            <div class="text-xs tracking-widest opacity-60 mb-2">CYBER MOTION</div>
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <h3 class="text-xl font-light mb-3 neon-glow text-red-400">KINETIC GRAPHICS</h3>
+                        <p class="text-sm opacity-60 mb-4">Animated consciousness sequences</p>
+                        <div class="text-xs space-mono opacity-40">2023.RENDERED</div>
+                    </div>
+                </div>
+                
+                <div class="morph-card rounded-3xl overflow-hidden group">
+                    <div class="aspect-square bg-gradient-to-br from-indigo-900 to-blue-900 relative overflow-hidden">
+                        <div class="absolute inset-0 hologram"></div>
+                        <div class="absolute inset-0 flex items-center justify-center">
+                            <div class="text-8xl font-thin opacity-20 neon-glow text-indigo-400">06</div>
+                        </div>
+                        <div class="absolute bottom-0 left-0 right-0 p-6 bg-gradient-to-t from-black to-transparent">
+                            <div class="text-xs tracking-widest opacity-60 mb-2">WEB MATRIX</div>
+                        </div>
+                    </div>
+                    <div class="p-8">
+                        <h3 class="text-xl font-light mb-3 neon-glow text-indigo-400">DIGITAL REALM</h3>
+                        <p class="text-sm opacity-60 mb-4">Immersive web experience design</p>
+                        <div class="text-xs space-mono opacity-40">2022.ONLINE</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Skills Section -->
+    <section id="skills" class="min-h-screen flex items-center px-6 py-20 section">
+        <div class="max-w-6xl mx-auto w-full">
+            <div class="text-center mb-20">
+                <div class="text-xs tracking-[0.3em] mb-8 text-cyan-400 opacity-60">NEURAL.CAPABILITIES</div>
+                <h2 class="text-5xl md:text-6xl font-thin neon-glow text-cyan-400">QUANTUM SKILLS</h2>
+            </div>
+            
+            <div class="grid md:grid-cols-2 gap-16">
+                <div class="morph-card rounded-3xl p-12">
+                    <h3 class="text-2xl font-light mb-12 neon-glow text-cyan-400">DESIGN PROTOCOLS</h3>
+                    <div class="space-y-10">
+                        <div>
+                            <div class="flex justify-between mb-4">
+                                <span class="font-light">NEURAL BRANDING</span>
+                                <span class="text-sm space-mono opacity-60">97.3%</span>
+                            </div>
+                            <div class="bg-cyan-400 bg-opacity-10 rounded-full h-1 overflow-hidden">
+                                <div class="bg-gradient-to-r from-cyan-400 to-blue-400 h-full rounded-full skill-bar" data-width="97.3"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-4">
+                                <span class="font-light">QUANTUM UI/UX</span>
+                                <span class="text-sm space-mono opacity-60">94.7%</span>
+                            </div>
+                            <div class="bg-cyan-400 bg-opacity-10 rounded-full h-1 overflow-hidden">
+                                <div class="bg-gradient-to-r from-purple-400 to-pink-400 h-full rounded-full skill-bar" data-width="94.7"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-4">
+                                <span class="font-light">HOLOGRAPHIC PRINT</span>
+                                <span class="text-sm space-mono opacity-60">91.2%</span>
+                            </div>
+                            <div class="bg-cyan-400 bg-opacity-10 rounded-full h-1 overflow-hidden">
+                                <div class="bg-gradient-to-r from-green-400 to-teal-400 h-full rounded-full skill-bar" data-width="91.2"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-4">
+                                <span class="font-light">CYBER MOTION</span>
+                                <span class="text-sm space-mono opacity-60">89.8%</span>
+                            </div>
+                            <div class="bg-cyan-400 bg-opacity-10 rounded-full h-1 overflow-hidden">
+                                <div class="bg-gradient-to-r from-yellow-400 to-orange-400 h-full rounded-full skill-bar" data-width="89.8"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="morph-card rounded-3xl p-12">
+                    <h3 class="text-2xl font-light mb-12 neon-glow text-cyan-400">DIGITAL ARSENAL</h3>
+                    <div class="space-y-10">
+                        <div>
+                            <div class="flex justify-between mb-4">
+                                <span class="font-light">ADOBE NEURAL SUITE</span>
+                                <span class="text-sm space-mono opacity-60">99.1%</span>
+                            </div>
+                            <div class="bg-cyan-400 bg-opacity-10 rounded-full h-1 overflow-hidden">
+                                <div class="bg-gradient-to-r from-cyan-400 to-blue-400 h-full rounded-full skill-bar" data-width="99.1"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-4">
+                                <span class="font-light">FIGMA QUANTUM</span>
+                                <span class="text-sm space-mono opacity-60">96.4%</span>
+                            </div>
+                            <div class="bg-cyan-400 bg-opacity-10 rounded-full h-1 overflow-hidden">
+                                <div class="bg-gradient-to-r from-purple-400 to-pink-400 h-full rounded-full skill-bar" data-width="96.4"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-4">
+                                <span class="font-light">BLENDER MATRIX</span>
+                                <span class="text-sm space-mono opacity-60">87.6%</span>
+                            </div>
+                            <div class="bg-cyan-400 bg-opacity-10 rounded-full h-1 overflow-hidden">
+                                <div class="bg-gradient-to-r from-green-400 to-teal-400 h-full rounded-full skill-bar" data-width="87.6"></div>
+                            </div>
+                        </div>
+                        <div>
+                            <div class="flex justify-between mb-4">
+                                <span class="font-light">AI CONSCIOUSNESS</span>
+                                <span class="text-sm space-mono opacity-60">92.3%</span>
+                            </div>
+                            <div class="bg-cyan-400 bg-opacity-10 rounded-full h-1 overflow-hidden">
+                                <div class="bg-gradient-to-r from-yellow-400 to-orange-400 h-full rounded-full skill-bar" data-width="92.3"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Contact Section -->
+    <section id="contact" class="min-h-screen flex items-center px-6 py-20 section">
+        <div class="max-w-4xl mx-auto text-center w-full">
+            <div class="text-xs tracking-[0.3em] mb-8 text-cyan-400 opacity-60">NEURAL.LINK</div>
+            <h2 class="text-5xl md:text-6xl font-thin mb-12 neon-glow text-cyan-400">ESTABLISH CONNECTION</h2>
+            <p class="text-xl font-light opacity-80 mb-20 leading-relaxed">
+                Ready to transcend digital boundaries?<br>
+                Let's merge our creative consciousness.
+            </p>
+            
+            <div class="grid md:grid-cols-3 gap-8 mb-20">
+                <div class="morph-card rounded-3xl p-8 text-center">
+                    <div class="w-20 h-20 mx-auto mb-8 rounded-full hologram flex items-center justify-center">
+                        <svg class="w-8 h-8 neon-glow text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                        </svg>
+                    </div>
+                    <h3 class="font-light mb-3 neon-glow text-cyan-400">QUANTUM MAIL</h3>
+                    <p class="text-sm opacity-60">neural@belenfajardo.quantum</p>
+                </div>
+                
+                <div class="morph-card rounded-3xl p-8 text-center">
+                    <div class="w-20 h-20 mx-auto mb-8 rounded-full hologram flex items-center justify-center">
+                        <svg class="w-8 h-8 neon-glow text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"/>
+                        </svg>
+                    </div>
+                    <h3 class="font-light mb-3 neon-glow text-cyan-400">NEURAL LINK</h3>
+                    <p class="text-sm opacity-60">+1 (555) QUANTUM</p>
+                </div>
+                
+                <div class="morph-card rounded-3xl p-8 text-center">
+                    <div class="w-20 h-20 mx-auto mb-8 rounded-full hologram flex items-center justify-center">
+                        <svg class="w-8 h-8 neon-glow text-cyan-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/>
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/>
+                        </svg>
+                    </div>
+                    <h3 class="font-light mb-3 neon-glow text-cyan-400">COORDINATES</h3>
+                    <p class="text-sm opacity-60">Digital Realm, Cyberspace</p>
+                </div>
+            </div>
+            
+            <div class="flex flex-col sm:flex-row gap-6 justify-center">
+                <button class="quantum-btn">
+                    INITIATE PROJECT
+                </button>
+                <button class="quantum-btn">
+                    SYNC CONSCIOUSNESS
+                </button>
+            </div>
+        </div>
+    </section>
+    
+    <script>
+        // Custom Cursor
+        const cursor = document.querySelector('.cursor');
+        const trails = [];
+        
+        // Create cursor trails
+        for (let i = 0; i < 10; i++) {
+            const trail = document.createElement('div');
+            trail.className = 'cursor-trail';
+            document.body.appendChild(trail);
+            trails.push(trail);
+        }
+        
+        let mouseX = 0, mouseY = 0;
+        
+        document.addEventListener('mousemove', (e) => {
+            mouseX = e.clientX;
+            mouseY = e.clientY;
+            
+            cursor.style.left = mouseX + 'px';
+            cursor.style.top = mouseY + 'px';
+            
+            // Update trails with delay
+            trails.forEach((trail, index) => {
+                setTimeout(() => {
+                    trail.style.left = mouseX + 'px';
+                    trail.style.top = mouseY + 'px';
+                    trail.style.opacity = (10 - index) / 10;
+                }, index * 20);
+            });
+        });
+        
+        // Neural Network Background
+        function createNeuralNetwork() {
+            const neuralBg = document.getElementById('neural-bg');
+            const nodes = [];
+            
+            // Create nodes
+            for (let i = 0; i < 50; i++) {
+                const node = document.createElement('div');
+                node.className = 'neural-node';
+                node.style.left = Math.random() * 100 + '%';
+                node.style.top = Math.random() * 100 + '%';
+                node.style.animationDelay = Math.random() * 3 + 's';
+                neuralBg.appendChild(node);
+                nodes.push(node);
+            }
+            
+            // Create connections
+            for (let i = 0; i < 30; i++) {
+                const connection = document.createElement('div');
+                connection.className = 'neural-connection';
+                const startX = Math.random() * 100;
+                const startY = Math.random() * 100;
+                const endX = Math.random() * 100;
+                const endY = Math.random() * 100;
+                
+                const length = Math.sqrt(Math.pow(endX - startX, 2) + Math.pow(endY - startY, 2));
+                const angle = Math.atan2(endY - startY, endX - startX) * 180 / Math.PI;
+                
+                connection.style.left = startX + '%';
+                connection.style.top = startY + '%';
+                connection.style.width = length + '%';
+                connection.style.transform = `rotate(${angle}deg)`;
+                connection.style.animationDelay = Math.random() * 2 + 's';
+                
+                neuralBg.appendChild(connection);
+            }
+        }
+        
+        // Particle System
+        function createParticles() {
+            const particleSystem = document.getElementById('particle-system');
+            
+            setInterval(() => {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.animationDuration = (Math.random() * 5 + 5) + 's';
+                particleSystem.appendChild(particle);
+                
+                setTimeout(() => {
+                    particle.remove();
+                }, 10000);
+            }, 500);
+        }
+        
+        // Matrix Rain Effect
+        function createMatrixRain() {
+            const matrixRain = document.getElementById('matrix-rain');
+            const characters = '01アイウエオカキクケコサシスセソタチツテトナニヌネノハヒフヘホマミムメモヤユヨラリルレロワヲン';
+            
+            setInterval(() => {
+                const column = document.createElement('div');
+                column.className = 'matrix-column';
+                column.style.left = Math.random() * 100 + '%';
+                column.style.animationDuration = (Math.random() * 5 + 5) + 's';
+                
+                let text = '';
+                for (let i = 0; i < 20; i++) {
+                    text += characters.charAt(Math.floor(Math.random() * characters.length)) + '<br>';
+                }
+                column.innerHTML = text;
+                
+                matrixRain.appendChild(column);
+                
+                setTimeout(() => {
+                    column.remove();
+                }, 10000);
+            }, 200);
+        }
+        
+        // Quantum Loader
+        function showQuantumLoader() {
+            document.getElementById('quantum-loader').classList.add('active');
+        }
+        
+        function hideQuantumLoader() {
+            document.getElementById('quantum-loader').classList.remove('active');
+        }
+        
+        // Navigation functionality
+        const navLinks = document.querySelectorAll('.nav-link');
+        const mobileMenuBtn = document.querySelector('.mobile-menu-btn');
+        const mobileMenu = document.querySelector('.mobile-menu');
+        const hamburger = document.querySelector('.hamburger');
+        
+        // Mobile menu toggle
+        mobileMenuBtn.addEventListener('click', () => {
+            mobileMenu.classList.toggle('open');
+            mobileMenu.classList.toggle('hidden');
+            hamburger.classList.toggle('open');
+        });
+        
+        // Navigation link functionality
+        navLinks.forEach(link => {
+            link.addEventListener('click', () => {
+                const targetSection = link.dataset.section;
+                
+                // Remove active class from all links
+                navLinks.forEach(nav => nav.classList.remove('active'));
+                
+                // Add loading state
+                link.classList.add('loading');
+                
+                // Show quantum loader
+                showQuantumLoader();
+                
+                setTimeout(() => {
+                    // Scroll to section
+                    document.getElementById(targetSection).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                    
+                    // Update active state
+                    link.classList.add('active');
+                    link.classList.remove('loading');
+                    
+                    // Close mobile menu if open
+                    if (mobileMenu.classList.contains('open')) {
+                        mobileMenu.classList.remove('open');
+                        mobileMenu.classList.add('hidden');
+                        hamburger.classList.remove('open');
+                    }
+                    
+                    setTimeout(() => {
+                        hideQuantumLoader();
+                    }, 1000);
+                }, 600);
+            });
+        });
+        
+        // Button navigation (for other buttons with data-section)
+        document.querySelectorAll('[data-section]:not(.nav-link)').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const targetSection = btn.dataset.section;
+                showQuantumLoader();
+                
+                // Update nav active state
+                navLinks.forEach(nav => nav.classList.remove('active'));
+                const correspondingNavLink = document.querySelector(`.nav-link[data-section="${targetSection}"]`);
+                if (correspondingNavLink) {
+                    correspondingNavLink.classList.add('active');
+                }
+                
+                setTimeout(() => {
+                    document.getElementById(targetSection).scrollIntoView({
+                        behavior: 'smooth'
+                    });
+                    
+                    setTimeout(() => {
+                        hideQuantumLoader();
+                    }, 1000);
+                }, 600);
+            });
+        });
+        
+        // Intersection Observer for sections
+        const observerOptions = {
+            threshold: 0.3,
+            rootMargin: '0px 0px -100px 0px'
+        };
+        
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    
+                    // Update navigation active state based on visible section
+                    const sectionId = entry.target.id;
+                    navLinks.forEach(nav => {
+                        nav.classList.remove('active');
+                        if (nav.dataset.section === sectionId) {
+                            nav.classList.add('active');
+                        }
+                    });
+                    
+                    // Animate skill bars when skills section is visible
+                    if (entry.target.id === 'skills') {
+                        setTimeout(() => {
+                            document.querySelectorAll('.skill-bar').forEach(bar => {
+                                const width = bar.dataset.width;
+                                bar.style.width = width + '%';
+                            });
+                        }, 500);
+                    }
+                }
+            });
+        }, observerOptions);
+        
+        document.querySelectorAll('.section').forEach(section => {
+            observer.observe(section);
+        });
+        
+        // Initialize effects
+        document.addEventListener('DOMContentLoaded', () => {
+            createNeuralNetwork();
+            createParticles();
+            createMatrixRain();
+        });
+        
+        // Hover effects for interactive elements
+        document.querySelectorAll('.quantum-btn, .morph-card, .nav-link, .mobile-menu-btn').forEach(element => {
+            element.addEventListener('mouseenter', () => {
+                cursor.style.transform = 'scale(2)';
+            });
+            
+            element.addEventListener('mouseleave', () => {
+                cursor.style.transform = 'scale(1)';
+            });
+        });
+        
+        // Glitch effect on text hover
+        document.querySelectorAll('.glitch-text').forEach(text => {
+            text.addEventListener('mouseenter', () => {
+                text.style.animationDuration = '0.1s';
+            });
+            
+            text.addEventListener('mouseleave', () => {
+                text.style.animationDuration = '2s';
+            });
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9804f9c61432bc4c',t:'MTc1ODA3NDA2Ny4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
